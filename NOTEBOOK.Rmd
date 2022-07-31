@@ -1,0 +1,133 @@
+---
+title:"Tìm biến ảnh hưởng đến FDI tại các nước đang phát triển"
+output: html_notebook
+---
+
+Bước đầu tiên là đọc dữ liệu vào 
+```{r}
+setwd("D:/DOANI")
+DATA = read.csv("m.csv",header = TRUE)
+```
+
+Hiển thị dữ liệu
+```{r}
+DATA
+```
+
+
+```{r}
+attach(DATA)
+```
+
+
+```{r}
+attach(DATA)
+model = DATA[,5:24]
+```
+
+
+```{r}
+model
+```
+
+
+```{r}
+library(car)
+library(corrplot) # ve hinh tuong quan
+library(psych) # ve hinh tuowng quan
+require(stargazer) # xuat ra ket qua hoi quy
+```
+
+
+```{r}
+round(cor(model,method="pearson",use = "pairwise.complete.obs"),2)
+```
+
+
+
+
+
+```{r}
+op <- par(mfrow = c(1,2))
+plot(FDI~PFDI, data = model, pch = 16, col = 'navy', main ="FDI vs PFDI")
+plot(FDI~OPEN, data = model, pch = 16, col = 'navy', main = "FDI vs OPEN")
+plot(FDI~GDPPC, data = model, pch = 16, col = 'navy', main = "FDI vs GDPPC")
+plot(FDI~INFR, data = model, pch =16, col = 'navy', main = "FDI vs INFR")
+```
+
+
+
+```{r}
+cor.test(PFDISTOCK,OPEN)
+```
+```{r}
+cor.test(FDI,PFDI)
+```
+```{r}
+cor.test(FDI,OPEN)
+```
+```{r}
+
+```
+
+```{r}
+cor.test(FDI, GDPPC)
+```
+
+```{r}
+pairs.panels(model[,c("FDI","PFDI","OPEN","GDPPC")])
+```
+```{r}
+OLS = lm(FDI~PFDI+OPEN+GDPPC)
+OLS
+summary(OLS)
+```
+
+
+```{r}
+confint(OLS)
+```
+
+```{r}
+par(mfrow=c(2,2))
+plot(OLS)
+```
+```{r}
+re= resid(OLS)
+```
+```{r}
+stargazer(h, type = "text")
+```
+
+
+```{r}
+shapiro.test(re)
+```
+```{r}
+t.test(re,mu=0)
+```
+```{r}
+ncvTest(OLS)
+```
+```{r}
+vif(OLS)
+```
+
+```{r}
+library(lfe)
+FE = felm(FDI ~ PFDI + OPEN|Period + Country.Name|0|Country.Name,DATA)
+summary(FE)
+```
+
+```{r}
+library(lfe)
+FE = felm(FDI ~ PFDI + OPEN|Country.Name+Period|0|Country.Name,DATA)
+summary(FE)
+```
+```{r}
+re= resid(FE)
+shapiro.test(re)
+ncvTest(FE)
+```
+
+
